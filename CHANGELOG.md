@@ -16,7 +16,9 @@ Initial release.
 - Typer-based CLI with six commands: `init`, `doctor`, `upscale-image`,
   `upscale-video`, `interpolate`, and `enhance-video`, plus `--version`.
 - Cross-platform NCNN Vulkan backend wrapping the Real-ESRGAN and RIFE
-  command-line tools (macOS, Linux, Windows).
+  command-line tools (macOS, Linux, Windows). The backend passes the managed
+  models directory to the tools via `-m` (overridable via the config `extra`
+  map), and was verified end-to-end upscaling 720p footage to 4K UHD.
 - FFmpeg/FFprobe wrapper: metadata probing, frame extraction, H.264 encoding,
   and audio passthrough.
 - Four processing pipelines: image upscale, video upscale, frame interpolation,
