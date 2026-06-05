@@ -2,8 +2,11 @@
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
+# Distribution name on PyPI. The bare "pixelflow" name is already taken, so the
+# published package is "pixelflow-cli"; the import package and the installed
+# command are both still "pixelflow".
 [project]
-name = "pixelflow"
+name = "pixelflow-cli"
 version = "0.1.0"
 description = "Cross-platform AI video enhancement CLI: upscale, interpolate, enhance using Real-ESRGAN, RIFE, and FFmpeg."
 readme = "README.md"

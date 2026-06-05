@@ -29,17 +29,18 @@ Ideal for content creators, developers, video engineers, AI enthusiasts, and any
 
 ## Install
 
-PixelFlow is a Python 3.12+ package. For everyday use, install it as an isolated
-CLI with [pipx](https://pipx.pypa.io/):
+PixelFlow is a Python 3.12+ package, published on PyPI as `pixelflow-cli` (the
+import package and the command are both `pixelflow`). For everyday use, install
+it as an isolated CLI with [pipx](https://pipx.pypa.io/):
 
 ```bash
-pipx install pixelflow
+pipx install pixelflow-cli
 ```
 
 Or into an environment with pip:
 
 ```bash
-pip install pixelflow
+pip install pixelflow-cli
 ```
 
 Then provision the external tools (FFmpeg, Real-ESRGAN, RIFE) for your platform:
@@ -105,15 +106,29 @@ pytest
 
 ### PyPI (pipx / pip)
 
-The package builds with [hatchling](https://hatch.pypa.io/). To cut a release:
+The package builds with [hatchling](https://hatch.pypa.io/) into a single
+platform-independent wheel (the heavy AI binaries are fetched at runtime by
+`pixelflow init`, not bundled).
+
+**Automated (recommended).** Pushing a `v*` tag triggers
+[`.github/workflows/publish.yml`](.github/workflows/publish.yml), which builds
+the distributions and publishes them via PyPI
+[Trusted Publishing](https://docs.pypi.org/trusted-publishers/) (OIDC — no API
+token stored in the repo). One-time setup: add a trusted publisher on PyPI for
+this repo + the `publish.yml` workflow and a `pypi` environment.
 
 ```bash
-# 1. Bump the version in pyproject.toml and update CHANGELOG.md
-# 2. Build the sdist and wheel
-python -m build            # produces dist/*.tar.gz and dist/*.whl
+# Bump version in pyproject.toml + update CHANGELOG.md, then:
+git tag -a v0.1.1 -m "PixelFlow 0.1.1" && git push origin v0.1.1
+```
 
-# 3. Upload to PyPI
-python -m twine upload dist/*
+**Manual.** To build and upload yourself:
+
+```bash
+rm -rf dist/
+python -m build              # produces dist/*.tar.gz and dist/*.whl
+python -m twine check dist/*
+python -m twine upload dist/* # username: __token__, password: <pypi token>
 ```
 
 ### Standalone binaries (PyInstaller)
