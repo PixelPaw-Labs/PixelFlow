@@ -1,0 +1,61 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "pixelflow"
+version = "0.1.0"
+description = "Cross-platform AI video enhancement CLI: upscale, interpolate, enhance using Real-ESRGAN, RIFE, and FFmpeg."
+readme = "README.md"
+requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [{ name = "PixelFlow contributors" }]
+keywords = ["video", "upscale", "interpolation", "real-esrgan", "rife", "ffmpeg", "cli"]
+classifiers = [
+    "Environment :: Console",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Multimedia :: Video",
+]
+dependencies = [
+    "typer>=0.12",
+    "rich>=13.7",
+    "requests>=2.31",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.5",
+    "black>=24.0",
+]
+
+[project.scripts]
+pixelflow = "pixelflow.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/pixelflow/pixelflow"
+Repository = "https://github.com/pixelflow/pixelflow"
+
+[tool.hatch.build.targets.wheel]
+packages = ["pixelflow"]
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "C4", "SIM"]
+ignore = ["B008"]  # Typer uses function calls in argument defaults by design
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["B011"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
