@@ -1,10 +1,29 @@
 # PixelFlow
 
-Cross-platform AI video enhancement CLI for image upscaling, video upscaling, and
-frame interpolation using Real-ESRGAN, RIFE, and FFmpeg. Supports macOS, Linux,
-and Windows.
+Cross-platform AI video enhancement CLI for video upscaling, image upscaling, frame interpolation, and video restoration. PixelFlow uses Real-ESRGAN, RIFE, and FFmpeg to improve video quality, increase video resolution, generate high-FPS video, and automate AI-powered video processing workflows on macOS, Linux, and Windows.
 
 **Upscale. Interpolate. Enhance.**
+
+## AI Video Upscaling & Frame Interpolation
+
+PixelFlow is an open-source command-line tool for:
+
+- AI video upscaling
+- AI image upscaling
+- Video frame interpolation
+- 30 FPS to 60 FPS conversion
+- 60 FPS to 120 FPS conversion
+- Video enhancement and restoration
+- Batch video processing
+- Automated video workflows
+
+Powered by:
+
+- Real-ESRGAN for image and video upscaling
+- RIFE for frame interpolation and FPS boosting
+- FFmpeg for video decoding, encoding, and media processing
+
+Ideal for content creators, developers, video engineers, AI enthusiasts, and anyone looking to enhance videos using open-source AI models.
 
 ---
 
@@ -43,6 +62,13 @@ Temp directory  OK
 ```
 
 ## Usage
+
+Common use cases include:
+
+- Upscaling 720p videos to 1080p or 4K
+- Converting 24 FPS, 30 FPS, or 60 FPS videos to higher frame rates
+- Enhancing anime, gameplay recordings, screen recordings, and archived footage
+- Automating video enhancement pipelines from the terminal
 
 ```bash
 # Upscale a single image
@@ -131,5 +157,7 @@ Submit a manifest to
 the PyInstaller `.exe` release asset, then `winget install PixelFlow.PixelFlow`.
 
 ## License
+
+PixelFlow is an open-source AI video enhancement project focused on video upscaling, image upscaling, frame interpolation, and cross-platform video processing.
 
 See [LICENSE](LICENSE).
