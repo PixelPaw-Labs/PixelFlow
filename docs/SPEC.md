@@ -120,6 +120,21 @@ something it does not support. The `mps`/`coreml` stubs are registered for
 discoverability but report themselves unavailable and raise `NotImplementedError`
 if invoked.
 
+### NCNN model resolution
+
+The NCNN tools load their weights from a models folder rather than from the
+executable name alone, so PixelFlow always points them at the managed models
+directory:
+
+- **Real-ESRGAN** receives `-n <model>` (e.g. `realesr-animevideov3`) plus
+  `-m <models_dir>`; the tool then loads `<models_dir>/<model>-x<scale>.{param,bin}`.
+- **RIFE** receives `-m <models_dir>/<model>`, i.e. the model's own subfolder.
+
+The models directory defaults to the managed `models/` dir but can be overridden
+via the `models_dir` key in the config's `extra` map (useful for pointing at an
+externally installed model set). Without a models directory, RIFE falls back to
+passing the bare model name as the path.
+
 ---
 
 ## 6. Provisioning (`init`)

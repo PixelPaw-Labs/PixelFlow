@@ -41,18 +41,28 @@ class NcnnVulkanBackend(Backend):
         realesrgan: str = "realesrgan-ncnn-vulkan",
         rife: str = "rife-ncnn-vulkan",
         paths: AppPaths | None = None,
+        models_dir: str | Path | None = None,
         runner: Runner = default_run,
         resolver: Resolver = resolve_executable,
     ) -> None:
         self._realesrgan = realesrgan
         self._rife = rife
         self._paths = paths or app_paths()
+        # Where the .param/.bin model files live. The NCNN tools default to a
+        # "models" folder relative to the working directory, which is rarely
+        # what we want, so we always point them at the managed models dir.
+        self._models_dir = Path(models_dir) if models_dir is not None else self._paths.models_dir
         self._run = runner
         self._resolve = resolver
 
     @classmethod
     def from_config(cls, config: Config) -> NcnnVulkanBackend:
-        return cls(realesrgan=config.realesrgan_path, rife=config.rife_path)
+        models_dir = config.extra.get("models_dir")
+        return cls(
+            realesrgan=config.realesrgan_path,
+            rife=config.rife_path,
+            models_dir=models_dir,
+        )
 
     @property
     def supports_upscale(self) -> bool:
@@ -75,6 +85,21 @@ class NcnnVulkanBackend(Backend):
             return False
         return True
 
+    def _realesrgan_model_args(self) -> list[str]:
+        """The ``-m`` models-folder argument for Real-ESRGAN, if known."""
+        return ["-m", str(self._models_dir)] if self._models_dir else []
+
+    def _rife_model_args(self, model: str) -> list[str]:
+        """The ``-m`` argument for RIFE — the model's own folder.
+
+        RIFE's ``-m`` expects the directory containing the model's flow files,
+        which lives under the managed models dir as ``<models_dir>/<model>``.
+        Falls back to the bare model name when no models dir is configured.
+        """
+        if self._models_dir:
+            return ["-m", str(self._models_dir / model)]
+        return ["-m", model]
+
     # -- upscaling ---------------------------------------------------------
 
     def upscale_image(
@@ -94,6 +119,7 @@ class NcnnVulkanBackend(Backend):
                 model,
                 "-s",
                 str(scale),
+                *self._realesrgan_model_args(),
                 "-f",
                 "png",
             ]
@@ -118,6 +144,7 @@ class NcnnVulkanBackend(Backend):
                 model,
                 "-s",
                 str(scale),
+                *self._realesrgan_model_args(),
                 "-f",
                 "png",
             ]
@@ -148,8 +175,7 @@ class NcnnVulkanBackend(Backend):
                 str(frames_dir),
                 "-o",
                 str(output_dir),
-                "-m",
-                model,
+                *self._rife_model_args(model),
                 "-n",
                 str(target_frame_count),
                 "-f",

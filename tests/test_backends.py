@@ -20,12 +20,14 @@ from pixelflow.utils.process import ExecutableNotFoundError
 from tests.conftest import RecordingRunner
 
 
-def _ncnn(runner: RecordingRunner, paths: AppPaths) -> NcnnVulkanBackend:
+def _ncnn(
+    runner: RecordingRunner, paths: AppPaths, models_dir: str | None = None
+) -> NcnnVulkanBackend:
     # A resolver that pretends every tool exists at a fixed location.
     def resolver(executable, *, search=()):  # noqa: ANN001
         return f"/fake/bin/{executable}"
 
-    return NcnnVulkanBackend(paths=paths, runner=runner, resolver=resolver)
+    return NcnnVulkanBackend(paths=paths, models_dir=models_dir, runner=runner, resolver=resolver)
 
 
 def test_registry_lists_backends() -> None:
@@ -49,30 +51,58 @@ def test_ncnn_capabilities() -> None:
 
 
 def test_ncnn_upscale_image_command(runner: RecordingRunner, app_paths: AppPaths) -> None:
-    backend = _ncnn(runner, app_paths)
+    backend = _ncnn(runner, app_paths, models_dir="/models")
     backend.upscale_image("in.png", app_paths.home / "out.png", model="m", scale=4)
     cmd = runner.calls[0]
     assert cmd[0] == "/fake/bin/realesrgan-ncnn-vulkan"
     assert "-s" in cmd and "4" in cmd
     assert "-n" in cmd and "m" in cmd
+    # Real-ESRGAN gets the models folder via -m.
+    assert cmd[cmd.index("-m") + 1] == "/models"
 
 
 def test_ncnn_upscale_frames_command(runner: RecordingRunner, app_paths: AppPaths) -> None:
-    backend = _ncnn(runner, app_paths)
+    backend = _ncnn(runner, app_paths, models_dir="/models")
     backend.upscale_frames(app_paths.home / "in", app_paths.home / "out", model="m", scale=2)
     cmd = runner.calls[0]
     assert "realesrgan-ncnn-vulkan" in cmd[0]
     assert "-s" in cmd and "2" in cmd
+    assert cmd[cmd.index("-m") + 1] == "/models"
 
 
 def test_ncnn_interpolate_command(runner: RecordingRunner, app_paths: AppPaths) -> None:
-    backend = _ncnn(runner, app_paths)
+    backend = _ncnn(runner, app_paths, models_dir="/models")
     backend.interpolate_frames(
         app_paths.home / "in", app_paths.home / "out", model="rife", target_frame_count=120
     )
     cmd = runner.calls[0]
     assert "rife-ncnn-vulkan" in cmd[0]
     assert "-n" in cmd and "120" in cmd
+    # RIFE gets the model's own folder under the models dir.
+    assert cmd[cmd.index("-m") + 1] == "/models/rife"
+
+
+def test_ncnn_rife_falls_back_to_model_name_without_models_dir(
+    runner: RecordingRunner, app_paths: AppPaths
+) -> None:
+    backend = NcnnVulkanBackend(
+        paths=app_paths,
+        models_dir=None,
+        runner=runner,
+        resolver=lambda exe, search=(): f"/fake/{exe}",  # noqa: ANN001
+    )
+    # models_dir defaults to paths.models_dir, so explicitly clear it to test the fallback.
+    backend._models_dir = None  # type: ignore[attr-defined]
+    backend.interpolate_frames("in", "out", model="rife-v4.6", target_frame_count=10)
+    cmd = runner.calls[0]
+    assert cmd[cmd.index("-m") + 1] == "rife-v4.6"
+
+
+def test_ncnn_from_config_reads_models_dir_override() -> None:
+    config = Config(backend="ncnn")
+    config.extra["models_dir"] = "/custom/models"
+    backend = NcnnVulkanBackend.from_config(config)
+    assert str(backend._models_dir) == "/custom/models"  # type: ignore[attr-defined]
 
 
 def test_ncnn_interpolate_rejects_nonpositive(runner: RecordingRunner, app_paths: AppPaths) -> None:
