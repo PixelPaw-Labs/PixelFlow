@@ -38,8 +38,8 @@ dev = [
 pixelflow = "pixelflow.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/pixelflow/pixelflow"
-Repository = "https://github.com/pixelflow/pixelflow"
+Homepage = "https://github.com/PixelPaw-Labs/PixelFlow"
+Repository = "https://github.com/PixelPaw-Labs/PixelFlow"
 
 [tool.hatch.build.targets.wheel]
 packages = ["pixelflow"]

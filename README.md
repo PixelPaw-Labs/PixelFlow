@@ -161,7 +161,7 @@ Publish a formula to a tap that downloads the release tarball and installs the
 ```ruby
 class Pixelflow < Formula
   desc "Cross-platform AI video enhancement CLI"
-  homepage "https://github.com/pixelflow/pixelflow"
+  homepage "https://github.com/PixelPaw-Labs/PixelFlow"
   url "https://files.pythonhosted.org/.../pixelflow-0.1.0.tar.gz"
   sha256 "<sha256>"
   depends_on "python@3.12"

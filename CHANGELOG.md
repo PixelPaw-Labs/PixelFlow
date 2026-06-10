@@ -57,6 +57,6 @@ Initial release.
   ~89% coverage at release.
 - Specification document under `docs/SPEC.md`.
 
-[Unreleased]: https://github.com/pixelflow/pixelflow/compare/v0.1.1...HEAD
-[0.1.1]: https://github.com/pixelflow/pixelflow/compare/v0.1.0...v0.1.1
-[0.1.0]: https://github.com/pixelflow/pixelflow/releases/tag/v0.1.0
+[Unreleased]: https://github.com/PixelPaw-Labs/PixelFlow/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/PixelPaw-Labs/PixelFlow/compare/v0.1.0...v0.1.1
+[0.1.0]: https://github.com/PixelPaw-Labs/PixelFlow/releases/tag/v0.1.0
