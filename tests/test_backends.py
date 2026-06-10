@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import os
+
 import pytest
 
 from pixelflow.backends import (
@@ -122,6 +124,74 @@ def test_ncnn_is_available_false_when_missing(app_paths: AppPaths) -> None:
 def test_ncnn_is_available_true_when_present(app_paths: AppPaths) -> None:
     backend = _ncnn(RecordingRunner(), app_paths)
     assert backend.is_available() is True
+
+
+def test_ncnn_ensure_executable_adds_exec_bit(tmp_path) -> None:
+    # NCNN zips are built on Windows and carry no unix exec bit.
+    tool = tmp_path / "realesrgan-ncnn-vulkan"
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o644)
+    assert not os.access(tool, os.X_OK)
+
+    result = NcnnVulkanBackend._ensure_executable(str(tool))
+
+    assert result == str(tool)
+    assert os.access(tool, os.X_OK)
+
+
+def test_ncnn_resolve_tool_recurses_into_subfolders(
+    runner: RecordingRunner, app_paths: AppPaths
+) -> None:
+    # `init` extracts each tool into its own subfolder; the flat search misses it.
+    sub = app_paths.bin_dir / "realesrgan"
+    sub.mkdir(parents=True)
+    tool = sub / "realesrgan-ncnn-vulkan"
+    tool.write_text("#!/bin/sh\n")
+    tool.chmod(0o644)
+
+    backend = NcnnVulkanBackend(paths=app_paths, models_dir="/models", runner=runner)
+    backend.upscale_image("in.png", app_paths.home / "out.png", model="m", scale=4)
+
+    cmd = runner.calls[0]
+    assert cmd[0] == str(tool)
+    # Resolution also makes the binary runnable.
+    assert os.access(tool, os.X_OK)
+
+
+def test_ncnn_realesrgan_prefers_adjacent_models_dir(
+    runner: RecordingRunner, app_paths: AppPaths
+) -> None:
+    sub = app_paths.bin_dir / "realesrgan"
+    sub.mkdir(parents=True)
+    (sub / "realesrgan-ncnn-vulkan").write_text("bin")
+    bundled_models = sub / "models"
+    bundled_models.mkdir()
+
+    backend = NcnnVulkanBackend(paths=app_paths, models_dir="/configured/models", runner=runner)
+    backend.upscale_image("in.png", app_paths.home / "out.png", model="m", scale=4)
+
+    cmd = runner.calls[0]
+    # The models folder shipped beside the binary wins over the configured dir.
+    assert cmd[cmd.index("-m") + 1] == str(bundled_models)
+
+
+def test_ncnn_rife_prefers_bundled_model_folder(
+    runner: RecordingRunner, app_paths: AppPaths
+) -> None:
+    sub = app_paths.bin_dir / "rife"
+    sub.mkdir(parents=True)
+    (sub / "rife-ncnn-vulkan").write_text("bin")
+    bundled_model = sub / "rife-v4.6"
+    bundled_model.mkdir()
+
+    backend = NcnnVulkanBackend(paths=app_paths, models_dir="/configured/models", runner=runner)
+    backend.interpolate_frames(
+        app_paths.home / "in", app_paths.home / "out", model="rife-v4.6", target_frame_count=10
+    )
+
+    cmd = runner.calls[0]
+    # RIFE's own model folder beside the binary wins over <models_dir>/<model>.
+    assert cmd[cmd.index("-m") + 1] == str(bundled_model)
 
 
 @pytest.mark.parametrize("backend_cls", [MpsBackend, CoreMlBackend])

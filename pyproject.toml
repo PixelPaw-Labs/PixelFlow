@@ -7,7 +7,7 @@ build-backend = "hatchling.build"
 # command are both still "pixelflow".
 [project]
 name = "pixelflow-cli"
-version = "0.1.0"
+version = "0.1.1"
 description = "Cross-platform AI video enhancement CLI: upscale, interpolate, enhance using Real-ESRGAN, RIFE, and FFmpeg."
 readme = "README.md"
 requires-python = ">=3.12"

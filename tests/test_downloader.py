@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import io
+import os
 import zipfile
 from pathlib import Path
 
@@ -98,6 +99,34 @@ def test_extract_unsupported_format_raises(tmp_path: Path) -> None:
     bogus.write_bytes(b"random")
     with pytest.raises(DownloadError):
         Downloader(FakeClient({})).extract(bogus, tmp_path / "out")
+
+
+def test_extract_zip_preserves_executable_bit(tmp_path: Path) -> None:
+    # The *-ncnn-vulkan binaries must remain runnable after extraction.
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        info = zipfile.ZipInfo("realesrgan-ncnn-vulkan")
+        info.external_attr = 0o755 << 16
+        zf.writestr(info, "#!/bin/sh\n")
+    archive = tmp_path / "a.zip"
+    archive.write_bytes(buf.getvalue())
+
+    Downloader(FakeClient({})).extract(archive, tmp_path / "out")
+
+    tool = tmp_path / "out" / "realesrgan-ncnn-vulkan"
+    assert os.access(tool, os.X_OK)
+
+
+def test_extract_zip_rejects_path_traversal(tmp_path: Path) -> None:
+    buf = io.BytesIO()
+    with zipfile.ZipFile(buf, "w") as zf:
+        zf.writestr("../escape.txt", "pwned")
+    archive = tmp_path / "a.zip"
+    archive.write_bytes(buf.getvalue())
+
+    with pytest.raises(DownloadError, match="Unsafe path"):
+        Downloader(FakeClient({})).extract(archive, tmp_path / "out")
+    assert not (tmp_path / "escape.txt").exists()
 
 
 def test_fetch_asset_downloads_and_extracts(tmp_path: Path) -> None:

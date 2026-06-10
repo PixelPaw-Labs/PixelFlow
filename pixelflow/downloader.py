@@ -8,6 +8,7 @@ tested deterministically without network access.
 
 from __future__ import annotations
 
+import os
 import tarfile
 import zipfile
 from collections.abc import Iterable
@@ -131,7 +132,7 @@ class Downloader:
         dest_dir.mkdir(parents=True, exist_ok=True)
         if zipfile.is_zipfile(archive):
             with zipfile.ZipFile(archive) as zf:
-                zf.extractall(dest_dir)
+                _extract_zip_preserving_mode(zf, dest_dir)
         elif tarfile.is_tarfile(archive):
             with tarfile.open(archive) as tf:
                 _safe_extract_tar(tf, dest_dir)
@@ -154,6 +155,26 @@ class Downloader:
         target.parent.mkdir(parents=True, exist_ok=True)
         archive_path.replace(target)
         return target
+
+
+def _extract_zip_preserving_mode(zf: zipfile.ZipFile, dest_dir: Path) -> None:
+    """Extract a zip, restoring the unix permission bits.
+
+    ``ZipFile.extractall`` discards the mode stored in each entry's
+    ``external_attr`` high word, so extracted executables (e.g. the
+    ``*-ncnn-vulkan`` binaries) lose their executable bit and fail to run.
+    Re-apply the recorded mode after extraction whenever the archive carries
+    one.
+    """
+    dest_root = dest_dir.resolve()
+    for info in zf.infolist():
+        target = (dest_dir / info.filename).resolve()
+        if not str(target).startswith(str(dest_root)):
+            raise DownloadError(f"Unsafe path in archive: {info.filename}")
+        zf.extract(info, dest_dir)
+        mode = info.external_attr >> 16
+        if mode:
+            os.chmod(dest_dir / info.filename, mode)
 
 
 def _safe_extract_tar(tf: tarfile.TarFile, dest_dir: Path) -> None:

@@ -123,7 +123,22 @@ def _render_doctor(report: DoctorReport) -> None:
 
 
 def _deps() -> Dependencies:
-    return build_dependencies(reporter=RichProgressReporter(console))
+    """Build pipeline dependencies, provisioning the backend on first use.
+
+    PixelFlow owns its own config and model assets under the app-home folder, so
+    callers (and skills) only ever invoke an enhancement command — if the backend
+    isn't provisioned yet, download it into that folder once, then rebuild. This
+    is why no caller needs to hand-write a config.json or pre-download models.
+    """
+    reporter = RichProgressReporter(console)
+    deps = build_dependencies(reporter=reporter)
+    if not deps.backend.is_available():
+        import requests
+
+        console.print("[dim]Backend not provisioned — running one-time setup…[/dim]")
+        provision(requests.Session(), paths=deps.paths, reporter=reporter)
+        deps = build_dependencies(reporter=reporter)
+    return deps
 
 
 @app.command("upscale-image")

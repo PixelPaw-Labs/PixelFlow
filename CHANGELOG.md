@@ -7,6 +7,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-11
+
+### Fixed
+
+- Preserve the unix executable bit when extracting tool archives, and add it
+  back on resolution, so the `*-ncnn-vulkan` binaries from the Windows-built
+  NCNN release zips are runnable instead of failing with `PermissionError`.
+- Discover backend binaries recursively under the managed `bin` directory:
+  `init` extracts each tool into its own subfolder (e.g.
+  `bin/realesrgan/realesrgan-ncnn-vulkan`), which the previous flat search
+  missed.
+- Prefer the `models`/model folder that ships beside the resolved binary for
+  the Real-ESRGAN and RIFE `-m` argument, falling back to the configured
+  models directory.
+
+### Added
+
+- Auto-provision the backend on first use: enhancement commands run the
+  one-time setup (download + extract) when the backend isn't ready yet, so no
+  caller needs to pre-run `init` or hand-write config.
+- `uv` install and run instructions in the README (`uv tool install`, `uvx`).
+
 ## [0.1.0] - 2026-06-06
 
 Initial release.
@@ -35,5 +57,6 @@ Initial release.
   ~89% coverage at release.
 - Specification document under `docs/SPEC.md`.
 
-[Unreleased]: https://github.com/pixelflow/pixelflow/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/pixelflow/pixelflow/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/pixelflow/pixelflow/compare/v0.1.0...v0.1.1
 [0.1.0]: https://github.com/pixelflow/pixelflow/releases/tag/v0.1.0

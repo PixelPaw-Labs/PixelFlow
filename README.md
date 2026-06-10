@@ -31,13 +31,20 @@ Ideal for content creators, developers, video engineers, AI enthusiasts, and any
 
 PixelFlow is a Python 3.12+ package, published on PyPI as `pixelflow-cli` (the
 import package and the command are both `pixelflow`). For everyday use, install
-it as an isolated CLI with [pipx](https://pipx.pypa.io/):
+it as an isolated CLI with [uv](https://docs.astral.sh/uv/) or
+[pipx](https://pipx.pypa.io/):
 
 ```bash
-pipx install pixelflow-cli
+uv tool install pixelflow-cli   # or: pipx install pixelflow-cli
 ```
 
-Or into an environment with pip:
+You can also run it once without installing:
+
+```bash
+uvx pixelflow-cli doctor
+```
+
+Or, inside an existing virtual environment, with pip:
 
 ```bash
 pip install pixelflow-cli
@@ -93,8 +100,7 @@ variable. See [`docs/SPEC.md`](docs/SPEC.md) for the full specification.
 
 ```bash
 # Create an environment and install with dev extras
-python -m venv .venv && source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync --extra dev                       # or: python -m venv .venv && source .venv/bin/activate && pip install -e ".[dev]"
 
 # Quality gate
 ruff check .
